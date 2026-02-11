@@ -1,0 +1,85 @@
+{
+    "1": {
+        "title": "NFA to DFA Conversion",
+        "description": "Convert Nondeterministic Finite Automata to Deterministic Finite Automata.",
+        "dir": "01_nfa_to_dfa",
+        "subproblems": {}
+    },
+    "2": {
+        "title": "Minimized DFA",
+        "description": "Minimization of DFA.",
+        "dir": "02_min_dfa",
+        "subproblems": {}
+    },
+    "3": {
+        "title": "Lexical Analyzer using FLEX",
+        "description": "Implementation of Lexical Analyzer using FLEX tool.",
+        "dir": "03_lex_analyzer",
+        "subproblems": {}
+    },
+    "4": {
+        "title": "Basic Flex Programs",
+        "description": "Various basic programs implemented in Flex.",
+        "dir": "04_basic_flex",
+        "subproblems": {
+            "1": "Count characters, words, lines",
+            "2": "Check for valid identifier",
+            "3": "Check for valid integer/float"
+        }
+    },
+    "5": {
+        "title": "Left Recursion and Left Factoring",
+        "description": "Elimination of Left Recursion and Left Factoring.",
+        "dir": "05_left_recursion_factoring",
+        "subproblems": {
+            "1": "Eliminate Left Recursion",
+            "2": "Eliminate Left Factoring"
+        }
+    },
+    "6": {
+        "title": "Calculator using FLEX and BISON",
+        "description": "Implementation of a calculator using FLEX and BISON.",
+        "dir": "06_calculator",
+        "subproblems": {}
+    },
+    "7": {
+        "title": "FIRST & FOLLOW",
+        "description": "Compute FIRST & FOLLOW sets for Top-Down Parsing.",
+        "dir": "07_first_follow",
+        "subproblems": {}
+    },
+    "8": {
+        "title": "Predictive Parsing Table",
+        "description": "Construct Predictive Parsing Table.",
+        "dir": "08_predictive_parsing",
+        "subproblems": {}
+    },
+    "9": {
+        "title": "Shift Reduce Parsing",
+        "description": "Implementation of Shift Reduce Parsing.",
+        "dir": "09_shift_reduce",
+        "subproblems": {}
+    },
+    "10": {
+        "title": "LR(0) Items Computation",
+        "description": "Computation of LR(0) items.",
+        "dir": "10_lr0_items",
+        "subproblems": {}
+    },
+    "11": {
+        "title": "Intermediate Code Generation",
+        "description": "Generate Quadruple, Triple, and Indirect Triple intermediate code.",
+        "dir": "11_icg",
+        "subproblems": {
+            "1": "Quadruple",
+            "2": "Triple",
+            "3": "Indirect Triple"
+        }
+    },
+    "12": {
+        "title": "Simple Code Generator",
+        "description": "Implementation of a simple code generator.",
+        "dir": "12_code_gen",
+        "subproblems": {}
+    }
+}
