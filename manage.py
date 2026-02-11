@@ -27,18 +27,32 @@ def clean_generated():
     for p in patterns:
         found.extend(glob.glob(p))
     
+    found = [d for d in found if os.path.exists(d)]
+    
     if not found:
         print("No generated lab directories found to clean.")
         return
 
-    print(f"Found {len(found)} directories to remove: {', '.join(found)}")
+    print(f"Found {len(found)} directories: {', '.join(found)}")
     confirm = input("Are you sure you want to delete them? (y/n): ").lower()
+    
     if confirm == 'y':
+        removed_count = 0
         for d in found:
-            if os.path.isdir(d):
-                shutil.rmtree(d)
-                print(f"Removed {d}")
-        print("Cleanup complete.")
+            try:
+                if os.path.exists(d):
+                    if os.path.isdir(d):
+                        shutil.rmtree(d)
+                    else:
+                        os.remove(d)
+                    print(f"Removed {d}")
+                    removed_count += 1
+                else:
+                    print(f"Skipped {d} (already gone)")
+            except OSError as e:
+                print(f"Error removing {d}: {e}")
+                
+        print(f"Cleanup complete. Removed {removed_count} items.")
     else:
         print("Aborted.")
 
@@ -95,11 +109,21 @@ def copy_template(problem_id, problem_data, subproblem_id=None):
         if overwrite != 'y':
             print("Aborted.")
             return
-        shutil.rmtree(dest_path)
+        try:
+            if os.path.isdir(dest_path):
+                shutil.rmtree(dest_path)
+            else:
+                os.remove(dest_path)
+        except OSError as e:
+            print(f"Error removing existing directory {dest_path}: {e}")
+            return
 
-    shutil.copytree(src_dir, dest_path)
-    print(f"\nSuccess! Created {dest_name} in current directory.")
-    print(f"cd {dest_name} to check the files.")
+    try:
+        shutil.copytree(src_dir, dest_path)
+        print(f"\nSuccess! Created {dest_name} in current directory.")
+        print(f"cd {dest_name} to check the files.")
+    except OSError as e:
+        print(f"Error copying template: {e}")
 
 def interactive_mode(problems):
     list_problems(problems)
