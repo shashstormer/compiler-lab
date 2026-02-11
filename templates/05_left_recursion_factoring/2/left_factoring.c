@@ -1,43 +1,57 @@
 #include <stdio.h>
 #include <string.h>
 
+void helper(char *s1, char *s2, char *prefix) {
+    int i=0;
+    while(s1[i] && s2[i] && s1[i] == s2[i]) {
+        prefix[i] = s1[i];
+        i++;
+    }
+    prefix[i] = '\0';
+}
+
 int main() {
-    char gram[20], part1[20], part2[20], modifiedGram[20], newGram[20], tempGram[20];
-    int i, j = 0, k = 0, l = 0, pos;
-
-    printf("Enter Production: A->");
-    gets(gram);
-
-    for (i = 0; gram[i] != '|'; i++, j++)
-        part1[j] = gram[i];
-    part1[j] = '\0';
+    char input[100], non_term;
+    char parts[10][20];
+    int part_count = 0;
     
-    for (j = ++i, i = 0; gram[j] != '\0'; j++, i++)
-        part2[i] = gram[j];
-    part2[i] = '\0';
-
-    for(i = 0; i < strlen(part1) || i < strlen(part2); i++) {
-        if(part1[i] == part2[i]) {
-            modifiedGram[k] = part1[i];
-            k++;
-            pos = i + 1;
+    printf("Enter production (e.g., S->aAb|aAc): ");
+    scanf("%s", input);
+    
+    non_term = input[0];
+    int j=0;
+    for(int i=3; i<strlen(input); i++) {
+        if(input[i] == '|') {
+            parts[part_count][j] = '\0';
+            part_count++;
+            j=0;
+        } else {
+            parts[part_count][j++] = input[i];
         }
     }
+    parts[part_count][j] = '\0';
+    part_count++;
     
-    for(i = pos, j = 0; part1[i] != '\0'; i++, j++)
-        newGram[j] = part1[i];
-    newGram[j++] = '|';
-    
-    for(i = pos; part2[i] != '\0'; i++, j++)
-        newGram[j] = part2[i];
-    newGram[j] = '\0';
-    
-    modifiedGram[k] = 'X';
-    modifiedGram[++k] = '\0';
-    
-    printf("\nGrammar Without Left Factoring:\n");
-    printf("A->%s\n", modifiedGram);
-    printf("X->%s\n", newGram);
-    
-    return 0;
+    char prefix[20];
+    if(part_count >= 2) {
+        helper(parts[0], parts[1], prefix);
+        int len = strlen(prefix);
+        
+        if(len > 0) {
+            printf("%c->%s%c'\n", non_term, prefix, non_term);
+            printf("%c'->", non_term);
+            for(int i=0; i<part_count; i++) {
+                if(strncmp(parts[i], prefix, len) == 0) {
+                    if(strlen(parts[i]) == len) printf("epsilon");
+                    else printf("%s", parts[i]+len);
+                } else {
+                    printf("%s", parts[i]);
+                }
+                if(i < part_count-1) printf("|");
+            }
+            printf("\n");
+        } else {
+            printf("No common prefix found.\n");
+        }
+    }
 }

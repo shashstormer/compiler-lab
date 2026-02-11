@@ -1,27 +1,23 @@
 #!/bin/bash
 
-REPO_URL="https://github.com/shashstormer/compiler-lab.git"
-INSTALL_DIR="$HOME/.lab_data"
-BRANCH="main"
+# Determine script location
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+MANAGE_SCRIPT="$SCRIPT_DIR/manage.py"
 
-update_repo() {
-    if [ -d "$INSTALL_DIR" ]; then
-        echo "Checking for updates..."
-        cd "$INSTALL_DIR" || exit
-        git pull origin "$BRANCH"
-    else
-        echo "Cloning repository..."
-        git clone "$REPO_URL" "$INSTALL_DIR"
+# Detect python again just to be safe at runtime
+PYTHON_CMD=""
+if command -v python3 &> /dev/null; then
+    PYTHON_CMD="python3"
+elif command -v python &> /dev/null; then
+    if python --version 2>&1 | grep -q "Python 3"; then
+        PYTHON_CMD="python"
     fi
-}
+fi
 
-if ! command -v python3 &> /dev/null; then
-    echo "Error: python3 is not installed. Please install it."
+if [ -z "$PYTHON_CMD" ]; then
+    echo "Error: Python 3 is required but not found."
     exit 1
 fi
 
-if [[ "$1" != "--no-update" ]]; then
-    pass
-fi
-
-python3 "$INSTALL_DIR/manage.py" "$@"
+# Execute
+"$PYTHON_CMD" "$MANAGE_SCRIPT" "$@"

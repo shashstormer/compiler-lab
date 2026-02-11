@@ -18,13 +18,25 @@
         "subproblems": {}
     },
     "4": {
-        "title": "Basic Flex Programs",
-        "description": "Various basic programs implemented in Flex.",
+        "title": "Basic Flex Programs (Week 4)",
+        "description": "15 Basic Flex Programs for Week 4",
         "dir": "04_basic_flex",
         "subproblems": {
-            "1": "Count characters, words, lines",
-            "2": "Check for valid identifier",
-            "3": "Check for valid integer/float"
+            "1": "Find vowel or not",
+            "2": "Count number of lines and characters",
+            "3": "Count total number of characters",
+            "4": "Count number of words",
+            "5": "Count number of lines, spaces and tabs",
+            "6": "Count frequency of given word in a file",
+            "7": "Find uppercase and lowercase letter",
+            "8": "Check if string is digit or word",
+            "9": "Implement positive closure",
+            "10": "Count total number of tokens",
+            "11": "Identify and Count Positive and Negative Numbers",
+            "12": "Identify operators or not",
+            "13": "Identify identifier or not",
+            "14": "Identify number or not",
+            "15": "Identify keyword or not"
         }
     },
     "5": {
@@ -40,7 +52,18 @@
         "title": "Calculator using FLEX and BISON",
         "description": "Implementation of a calculator using FLEX and BISON.",
         "dir": "06_calculator",
-        "subproblems": {}
+        "subproblems": {
+            "1": "Functions: +, *, SIN, COS, ASIN, ACOS",
+            "2": "Functions: /, -, POW, EXP",
+            "3": "Functions: +, -, SINH, COSH, ASIN, ACOS",
+            "4": "Functions: /, *, TAN, ATAN, TANH",
+            "5": "Functions: +, *, -, SQRT, CQRT",
+            "6": "Functions: /, -, LOG, LOG10",
+            "7": "Functions: LOG10, LOG, LOG2, ABS",
+            "8": "Functions: -, /, CEIL, FLOOR",
+            "9": "Functions: *, ABS, FABS, COT",
+            "10": "Functions: LOG5, LOG3, SIN, ACOS"
+        }
     },
     "7": {
         "title": "FIRST & FOLLOW",
