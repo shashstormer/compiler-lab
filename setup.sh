@@ -31,7 +31,7 @@ if [ ! -f "$SETUP_LOG" ]; then
     touch "$SETUP_LOG"
 fi
 ALIAS_CMD="alias lab='bash $INSTALL_DIR/lab.sh'"
-CONFIG_FILES=("$HOME/.bashrc" "$HOME/.zshrc" "$HOME/.bash_profile" "$HOME/.profile")
+CONFIG_FILES=("$HOME/.bashrc" "$HOME/.zshrc" "$HOME/.bash_profile" "$HOME/.profile" "$HOME/.config/fish/config.fish")
 
 echo "Configuring shells..."
 
