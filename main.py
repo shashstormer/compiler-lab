@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Response
 
 app = FastAPI()
 
@@ -6,7 +6,7 @@ app = FastAPI()
 @app.get("/compiler/lab.sh")
 async def compiler_lab_setup():
     with open('setup.sh', 'r') as f:
-        return f.read()
+        return Response(f.read())
 
 
 if __name__ == "__main__":
