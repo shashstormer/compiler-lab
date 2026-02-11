@@ -3,24 +3,44 @@
         "title": "NFA to DFA Conversion",
         "description": "Convert Nondeterministic Finite Automata to Deterministic Finite Automata.",
         "dir": "01_nfa_to_dfa",
+        "usage": {
+            "explanation": "This program converts an NFA (which allows multiple transitions on the same symbol and epsilon transitions) into a DFA (which has exactly one transition per symbol). The resulting DFA accepts the same language as the NFA but is easier to simulate.",
+            "algorithm": "Subset Construction Algorithm:\n1. Compute Epsilon Closure for the start state (set of all states reachable via epsilon).\n2. This set becomes the start state of the DFA.\n3. For each DFA state (set of NFA states) and each input symbol:\n   a. Find all NFA states reachable from the current set on that symbol.\n   b. Compute the epsilon closure of those reachable states.\n   c. This new set defines a transition to a (possibly new) DFA state.\n4. Repeat until no new DFA states are generated.\n5. Any DFA state containing an NFA final state is marked as final.",
+            "run": "gcc nfa2dfa.c -o nfa2dfa && ./nfa2dfa"
+        },
         "subproblems": {}
     },
     "2": {
         "title": "Minimized DFA",
         "description": "Minimization of DFA.",
         "dir": "02_min_dfa",
+        "usage": {
+            "explanation": "Minimization reduces the number of states in a DFA to the smallest possible set while maintaining the same language recognition. This improves memory usage and processing speed in automata-based applications.",
+            "algorithm": "Hopcroft's Partition Refinement (Simplified):\n1. Start with two partitions: Final States (F) and Non-Final States (Q-F).\n2. For each input symbol, check if states in a partition transition to states in different partitions.\n3. If they do, split the partition so that all states in a new group have similar transition behavior.\n4. Repeat this refinement until no partitions can be split further.\n5. Each resulting partition represents a single state in the minimized DFA.",
+            "run": "gcc minimize_dfa.c -o min_dfa && ./min_dfa"
+        },
         "subproblems": {}
     },
     "3": {
         "title": "Lexical Analyzer using FLEX",
         "description": "Implementation of Lexical Analyzer using FLEX tool.",
         "dir": "03_lex_analyzer",
+        "usage": {
+            "explanation": "A Lexical Analyzer (Lexer) splits a stream of characters into meaningful tokens (keywords, identifiers, numbers, operators). Flex is a tool that generates a C scanner based on Regular Expressions defined in a .l file.",
+            "algorithm": "1. Define tokens using Regular Expressions (e.g., [0-9]+ for integers, [a-zA-Z_]+ for identifiers).\n2. Flex compiles these regexes into a DFA table.\n3. The generated C code reads input character by character, following the DFA to match the longest possible token.\n4. On a match, it executes the associated C action (e.g., printf or return token).",
+            "run": "flex lexer.l && gcc lex.yy.c -o lexer -lfl && ./lexer"
+        },
         "subproblems": {}
     },
     "4": {
         "title": "Basic Flex Programs (Week 4)",
         "description": "15 Basic Flex Programs for Week 4",
         "dir": "04_basic_flex",
+        "usage": {
+            "explanation": "A collection of 15 fundamental exercises to learn regex matching with Flex. These cover character counting, pattern recognition, and string validation.",
+            "algorithm": "Each program uses specific Regex patterns:\n- Vowels: [aeiouAEIOU]\n- Words: [a-zA-Z0-9]+\n- Floats: [0-9]+\\.[0-9]+\n- Identifiers: [a-zA-Z_][a-zA-Z0-9_]*\nflex matches these patterns against standard input or a file and fires the corresponding action blocks.",
+            "run": "flex <filename>.l && gcc lex.yy.c -o output -lfl && ./output"
+        },
         "subproblems": {
             "1": "Find vowel or not",
             "2": "Count number of lines and characters",
@@ -43,6 +63,11 @@
         "title": "Left Recursion and Left Factoring",
         "description": "Elimination of Left Recursion and Left Factoring.",
         "dir": "05_left_recursion_factoring",
+        "usage": {
+            "explanation": "Top-Down parsers (like LL(1)) cannot handle Left Recursion (infinite lexing loop) or Left Factoring (ambiguous choice). We must transform the grammar to remove these issues.",
+            "algorithm": "Left Recursion Elimination:\n   Production: A -> Aa | b\n   Transform to: A -> bA', A' -> aA' | epsilon\n\nLeft Factoring:\n   Production: A -> alpha B | alpha C\n   Transform to: A -> alpha A', A' -> B | C\n   (Finds the longest common prefix 'alpha' and factors it out).",
+            "run": "gcc left_recursion.c -o lr && ./lr AND gcc left_factoring.c -o lf && ./lf"
+        },
         "subproblems": {
             "1": "Eliminate Left Recursion",
             "2": "Eliminate Left Factoring"
@@ -52,6 +77,11 @@
         "title": "Calculator using FLEX and BISON",
         "description": "Implementation of a calculator using FLEX and BISON.",
         "dir": "06_calculator",
+        "usage": {
+            "explanation": "A scientific calculator built using Bison (Parser Generator) and Flex (Lexer). Bison defines the grammar (E -> E + T) and handles operator precedence (BODMAS) automatically via %left/%right directives.",
+            "algorithm": "1. Flex tokenizes input (returns NUMBER, PLUS, MINUS...).\n2. Bison (LALR parser) shifts tokens onto a stack.\n3. When a rule matches (e.g., E + E), it Reduces the stack, calculating the result ($$ = $1 + $3).\n4. Supports mathematical functions via <math.h> linked with -lm.",
+            "run": "bison -d calc.y && flex calc.l && gcc calc.tab.c lex.yy.c -o calc -lm && ./calc"
+        },
         "subproblems": {
             "1": "Functions: +, *, SIN, COS, ASIN, ACOS",
             "2": "Functions: /, -, POW, EXP",
@@ -69,30 +99,55 @@
         "title": "FIRST & FOLLOW",
         "description": "Compute FIRST & FOLLOW sets for Top-Down Parsing.",
         "dir": "07_first_follow",
+        "usage": {
+            "explanation": "FIRST(A) is the set of terminals that can begin strings derived from A. FOLLOW(A) is the set of terminals that can appear immediately to the right of A in some sentential form. Prerequisites for LL(1) table construction.",
+            "algorithm": "FIRST(X):\n- If X is terminal, {X}.\n- If X -> epsilon, add epsilon.\n- If X -> Y1Y2..., add FIRST(Y1) (minus eps). If Y1 nullable, add FIRST(Y2), etc.\n\nFOLLOW(A):\n- Add $ to FOLLOW(Start).\n- If A -> alpha B beta, add FIRST(beta) (minus eps) to FOLLOW(B).\n- If A -> alpha B or A -> alpha B beta (where beta nullable), add FOLLOW(A) to FOLLOW(B).",
+            "run": "gcc first_follow.c -o ff && ./ff"
+        },
         "subproblems": {}
     },
     "8": {
         "title": "Predictive Parsing Table",
         "description": "Construct Predictive Parsing Table.",
         "dir": "08_predictive_parsing",
+        "usage": {
+            "explanation": "Constructs the M[Non-Terminal, Terminal] table used by an LL(1) predictive parser. It allows the parser to choose the correct production rule without backtracking.",
+            "algorithm": "For each production A -> alpha:\n1. For each terminal 'a' in FIRST(alpha), add A -> alpha to M[A, a].\n2. If epsilon is in FIRST(alpha), add A -> alpha to M[A, b] for each 'b' in FOLLOW(A).\n3. If FIRST(alpha) contains epsilon and $ is in FOLLOW(A), add A -> alpha to M[A, $].",
+            "run": "gcc parsing_table.c -o pt && ./pt"
+        },
         "subproblems": {}
     },
     "9": {
         "title": "Shift Reduce Parsing",
         "description": "Implementation of Shift Reduce Parsing.",
         "dir": "09_shift_reduce",
+        "usage": {
+            "explanation": "A simulated Bottom-Up parser. It uses a stack to hold symbols. It 'Shifts' input symbols onto the stack and 'Reduces' a sequence of symbols on top of the stack to a non-terminal if they match a production RHS (Handle Pruning).",
+            "algorithm": "1. Shift input symbol to stack.\n2. Check if stack top matches any production RHS (Handle).\n3. If match, Reduce (pop RHS, push LHS).\n4. Repeat Reduce if possible.\n5. If Stack contains only Start Symbol and input is empty -> Accept.",
+            "run": "gcc shift_reduce.c -o sr && ./sr"
+        },
         "subproblems": {}
     },
     "10": {
         "title": "LR(0) Items Computation",
         "description": "Computation of LR(0) items.",
         "dir": "10_lr0_items",
+        "usage": {
+            "explanation": "An LR(0) item is a production with a dot (.) indicating how much has been parsed (e.g., A -> a.B). Computing the collection of these item sets is the first step in building LR parsers (SLR, CLR, LALR).",
+            "algorithm": "1. Augment grammar (S' -> S).\n2. Closure(I): If A -> alpha . B beta is in item set I, add B -> .gamma for all productions of B.\n3. Goto(I, X): Move dot past symbol X for all items in I expecting X. Compute Closure of result.\n4. Repeat to find all canonical sets.",
+            "run": "gcc lr0.c -o lr0 && ./lr0"
+        },
         "subproblems": {}
     },
     "11": {
         "title": "Intermediate Code Generation",
         "description": "Generate Quadruple, Triple, and Indirect Triple intermediate code.",
         "dir": "11_icg",
+        "usage": {
+            "explanation": "Intermediate Code is a machine-independent representation (like 3-Address Code). We implement Quadruples (Op, Arg1, Arg2, Result), Triples (Op, Arg1, Arg2 - refer to index), and Indirect Triples (pointers to triples).",
+            "algorithm": "1. Parse expression (e.g., a = b + c * d).\n2. Generate temporaries (t1 = c * d, t2 = b + t1, a = t2).\n3. Store in structure arrays based on format:\n   - Quad: Explicit result variable.\n   - Triple: Result is implicit (row index).\n   - Ind. Triple: Array of pointers to Triple table.",
+            "run": "gcc quad.c -o quad && ./quad"
+        },
         "subproblems": {
             "1": "Quadruple",
             "2": "Triple",
@@ -103,6 +158,11 @@
         "title": "Simple Code Generator",
         "description": "Implementation of a simple code generator.",
         "dir": "12_code_gen",
+        "usage": {
+            "explanation": "The final phase of compilation. Translates Intermediate Code (3AC) into Target Code (Assembly). Handles basic register allocation and instruction selection.",
+            "algorithm": "For each 3-address instruction (x = y op z):\n1. Get registers for y and z (Load if necessary).\n2. Issue machine OpCode (ADD, MUL, etc.).\n3. Update register descriptors to track which variable is where.",
+            "run": "gcc code_gen.c -o cg && ./cg"
+        },
         "subproblems": {}
     }
 }
