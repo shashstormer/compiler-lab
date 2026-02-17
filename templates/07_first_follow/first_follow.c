@@ -2,83 +2,169 @@
 #include<ctype.h>
 #include<string.h>
 
-void follow(char c);
-void first(char c);
-
-int count, n = 0;
-char calc_first[10][100];
-char calc_follow[10][100];
-int m = 0;
+int count;
 char production[10][10];
-char f[10], first_set[10];
-int k;
-char ck;
-int e;
+char first_res[10][20];
+int first_count[10];
+char follow_res[10][20];
+int follow_count[10];
+char nonterminals[10];
+int nt_count = 0;
 
-int main(int argc, char **argv) {
-    int i, z;
-    char c, ch;
-    
-    printf("Enter the number of productions:\n");
-    scanf("%d", &count);
-    
-    printf("Enter the productions (e.g. E=TR):\n");
-    for(i=0; i<count; i++)
-        scanf("%s%c", production[i], &ch);
-        
-    do {
-        m = 0;
-        printf("Enter the element to calculate First & Follow: ");
-        scanf("%c", &c);
-        
-        first(c);
-        printf("\nFirst(%c) = { ", c);
-        for(i=0; i<m; i++)
-            printf("%c ", f[i]);
-        printf("}\n");
-        
-        strcpy(f, " ");
-        m = 0;
-        follow(c);
-        printf("Follow(%c) = { ", c);
-        for(i=0; i<m; i++)
-            printf("%c ", f[i]);
-        printf("}\n");
-        
-        printf("Continue(0/1)? ");
-        scanf("%d%c", &z, &ch);
-    } while(z == 1);
-    
+int is_nonterminal(char c) {
+    return isupper(c);
+}
+
+int nt_index(char c) {
+    int i;
+    for(i = 0; i < nt_count; i++)
+        if(nonterminals[i] == c) return i;
+    return -1;
+}
+
+int in_set(char *set, int sz, char c) {
+    int i;
+    for(i = 0; i < sz; i++)
+        if(set[i] == c) return 1;
     return 0;
 }
 
-void first(char c) {
-    int j;
-    if(!(isupper(c)))
-        f[m++] = c;
-    for(j=0; j<count; j++) {
-        if(production[j][0] == c) {
-            if(production[j][2] == '$')
-                follow(production[j][0]);
-            else if(islower(production[j][2]))
-                f[m++] = production[j][2];
-            else
-                first(production[j][2]);
+void add_to_set(char *set, int *sz, char c) {
+    if(!in_set(set, *sz, c))
+        set[(*sz)++] = c;
+}
+
+void compute_first(char c, char *result, int *res_count) {
+    int i;
+    if(!is_nonterminal(c)) {
+        add_to_set(result, res_count, c);
+        return;
+    }
+    for(i = 0; i < count; i++) {
+        if(production[i][0] == c) {
+            int rhs_start = 2;
+            int j = rhs_start;
+            if(production[i][j] == '#') {
+                add_to_set(result, res_count, '#');
+                continue;
+            }
+            while(production[i][j] != '\0') {
+                char sym = production[i][j];
+                if(!is_nonterminal(sym)) {
+                    add_to_set(result, res_count, sym);
+                    break;
+                } else {
+                    char temp[20];
+                    int temp_count = 0;
+                    compute_first(sym, temp, &temp_count);
+                    int k;
+                    for(k = 0; k < temp_count; k++)
+                        if(temp[k] != '#')
+                            add_to_set(result, res_count, temp[k]);
+                    if(!in_set(temp, temp_count, '#'))
+                        break;
+                    j++;
+                    if(production[i][j] == '\0')
+                        add_to_set(result, res_count, '#');
+                }
+            }
         }
     }
 }
 
-void follow(char c) {
+void compute_follow(char c) {
+    int idx = nt_index(c);
+    if(idx < 0) return;
     if(production[0][0] == c)
-        f[m++] = '$';
-    for(int i=0; i<10; i++) {
-        for(int j=2; j<10; j++) {
+        add_to_set(follow_res[idx], &follow_count[idx], '$');
+    int i, j;
+    for(i = 0; i < count; i++) {
+        for(j = 2; production[i][j] != '\0'; j++) {
             if(production[i][j] == c) {
-                if(production[i][j+1] != '\0')
-                    first(production[i][j+1]);
-                if(production[i][j+1] == '\0' && c != production[i][0])
-                    follow(production[i][0]);
+                if(production[i][j+1] != '\0') {
+                    int k = j + 1;
+                    while(production[i][k] != '\0') {
+                        char next = production[i][k];
+                        if(!is_nonterminal(next)) {
+                            add_to_set(follow_res[idx], &follow_count[idx], next);
+                            break;
+                        } else {
+                            char temp[20];
+                            int temp_count = 0;
+                            compute_first(next, temp, &temp_count);
+                            int m;
+                            for(m = 0; m < temp_count; m++)
+                                if(temp[m] != '#')
+                                    add_to_set(follow_res[idx], &follow_count[idx], temp[m]);
+                            if(!in_set(temp, temp_count, '#'))
+                                break;
+                            k++;
+                            if(production[i][k] == '\0') {
+                                int pidx = nt_index(production[i][0]);
+                                if(pidx >= 0 && production[i][0] != c) {
+                                    compute_follow(production[i][0]);
+                                    int m2;
+                                    for(m2 = 0; m2 < follow_count[pidx]; m2++)
+                                        add_to_set(follow_res[idx], &follow_count[idx], follow_res[pidx][m2]);
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    if(production[i][0] != c) {
+                        int pidx = nt_index(production[i][0]);
+                        if(pidx >= 0) {
+                            compute_follow(production[i][0]);
+                            int m;
+                            for(m = 0; m < follow_count[pidx]; m++)
+                                add_to_set(follow_res[idx], &follow_count[idx], follow_res[pidx][m]);
+                        }
+                    }
+                }
             }
         }
     }
+}
+
+int main() {
+    int i;
+    char ch;
+    printf("Enter number of productions:\n");
+    scanf("%d", &count);
+    for(i = 0; i < count; i++) {
+        scanf("%s%c", production[i], &ch);
+        if(nt_index(production[i][0]) == -1)
+            nonterminals[nt_count++] = production[i][0];
+    }
+
+    for(i = 0; i < nt_count; i++) {
+        first_count[i] = 0;
+        follow_count[i] = 0;
+    }
+
+    for(i = 0; i < nt_count; i++)
+        compute_first(nonterminals[i], first_res[i], &first_count[i]);
+
+    printf("\n");
+    for(i = 0; i < nt_count; i++) {
+        printf("FIRST(%c) = { ", nonterminals[i]);
+        int j;
+        for(j = 0; j < first_count[i]; j++)
+            printf("%c ", first_res[i][j]);
+        printf("}\n");
+    }
+
+    for(i = 0; i < nt_count; i++)
+        compute_follow(nonterminals[i]);
+
+    printf("\n");
+    for(i = 0; i < nt_count; i++) {
+        printf("FOLLOW(%c) = { ", nonterminals[i]);
+        int j;
+        for(j = 0; j < follow_count[i]; j++)
+            printf("%c ", follow_res[i][j]);
+        printf("}\n");
+    }
+
+    return 0;
 }

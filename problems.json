@@ -97,25 +97,40 @@
     },
     "7": {
         "title": "FIRST & FOLLOW",
-        "description": "Compute FIRST & FOLLOW sets for Top-Down Parsing.",
+        "description": "Compute FIRST & FOLLOW sets for Top-Down Parsing in C.",
         "dir": "07_first_follow",
         "usage": {
-            "explanation": "FIRST(A) is the set of terminals that can begin strings derived from A. FOLLOW(A) is the set of terminals that can appear immediately to the right of A in some sentential form. Prerequisites for LL(1) table construction.",
-            "algorithm": "FIRST(X):\n- If X is terminal, {X}.\n- If X -> epsilon, add epsilon.\n- If X -> Y1Y2..., add FIRST(Y1) (minus eps). If Y1 nullable, add FIRST(Y2), etc.\n\nFOLLOW(A):\n- Add $ to FOLLOW(Start).\n- If A -> alpha B beta, add FIRST(beta) (minus eps) to FOLLOW(B).\n- If A -> alpha B or A -> alpha B beta (where beta nullable), add FOLLOW(A) to FOLLOW(B).",
+            "explanation": "FIRST(A) is the set of terminals that can begin strings derived from non-terminal A. FOLLOW(A) is the set of terminals that can appear immediately after A in some sentential form. These sets are prerequisites for constructing an LL(1) predictive parsing table.\n\nInput format: Productions use '=' as separator (e.g., E=TR) and '#' for epsilon.",
+            "algorithm": "Compute FIRST sets:\n1. Initialize FIRST(terminal) = {terminal}.\n2. For each non-terminal A, initialize FIRST(A) = {}.\n3. For each production A -> alpha:\n   - If alpha is terminal or epsilon(#), add it to FIRST(A).\n   - If alpha is non-terminal, add FIRST(alpha) minus epsilon to FIRST(A).\n   - If epsilon is in FIRST(alpha), continue to the next symbol.\n4. Repeat until no changes.\n\nCompute FOLLOW sets:\n1. Add $ to FOLLOW(Start Symbol).\n2. For each production A -> alpha B beta:\n   - Add FIRST(beta) minus epsilon to FOLLOW(B).\n   - If beta is epsilon or derives epsilon, add FOLLOW(A) to FOLLOW(B).\n3. Repeat until no changes.\n\nSample Input: 8 productions: E=TR, R=+TR, R=#, T=FY, Y=*FY, Y=#, F=(E), F=i\nSample Output: FIRST(E)={(,i}, FIRST(R)={+,#}, FOLLOW(E)={$,)}, FOLLOW(T)={+,$,)}",
             "run": "gcc first_follow.c -o ff && ./ff"
         },
         "subproblems": {}
     },
     "8": {
         "title": "Predictive Parsing Table",
-        "description": "Construct Predictive Parsing Table.",
+        "description": "Construct Predictive Parsing Table in C.",
         "dir": "08_predictive_parsing",
         "usage": {
-            "explanation": "Constructs the M[Non-Terminal, Terminal] table used by an LL(1) predictive parser. It allows the parser to choose the correct production rule without backtracking.",
-            "algorithm": "For each production A -> alpha:\n1. For each terminal 'a' in FIRST(alpha), add A -> alpha to M[A, a].\n2. If epsilon is in FIRST(alpha), add A -> alpha to M[A, b] for each 'b' in FOLLOW(A).\n3. If FIRST(alpha) contains epsilon and $ is in FOLLOW(A), add A -> alpha to M[A, $].",
+            "explanation": "Constructs the M[Non-Terminal, Terminal] parsing table used by an LL(1) predictive parser. The program first computes FIRST and FOLLOW sets, then builds the table. It allows the parser to choose the correct production rule without backtracking.\n\nInput format: Productions use '=' as separator (e.g., E=TR) and '#' for epsilon.\nThe grammar should already be free of left recursion and left factoring.",
+            "algorithm": "1. Remove left recursion: A->Aa|b becomes A->bA', A'->aA'|#\n2. Left factoring: A->aB|aC becomes A->aA', A'->B|C\n3. Compute FIRST sets for all non-terminals.\n4. Compute FOLLOW sets for all non-terminals.\n5. Construct parsing table M:\n   - For each production A->alpha:\n     a. For each terminal 'a' in FIRST(alpha), add A->alpha to M[A,a].\n     b. If epsilon(#) is in FIRST(alpha), for each terminal 'b' in FOLLOW(A), add A->alpha to M[A,b].\n\nSample Input: Expression grammar E=TR, R=+TR, R=#, T=FY, Y=*FY, Y=#, F=(E), F=i\nSample Output: Parsing table showing E->TR under 'i' and '(', R->+TR under '+', etc.",
             "run": "gcc parsing_table.c -o pt && ./pt"
         },
-        "subproblems": {}
+        "subproblems": {
+            "1": "Grammar: S->abS|aSb",
+            "2": "Grammar: S->aSB|aBb|aSb",
+            "3": "Grammar: S->aCd|aT, C->a|ab, T->ccd|ddc",
+            "4": "Grammar: A->bAAaaA|bAAaAb|bAc|a",
+            "5": "Grammar: S->iEtS|iEtSeS|a, E->b",
+            "6": "Grammar: A->aAB|aBc|aAc",
+            "7": "Grammar: S->aSSbS|aSaSb|abb|b",
+            "8": "Grammar: S->a|ab|abc|abcd",
+            "9": "Grammar: S->aAd|aB, A->a|ab, B->ccd|ddc",
+            "10": "Grammar: S->S+S|S*S|a",
+            "11": "Grammar: E->E+T|T, T->T*F|F, F->(E)|id",
+            "12": "Grammar: S->a|^|(T), T->T,S|S",
+            "13": "Grammar: S->SS+|SS*|a",
+            "14": "Grammar: S->S0S1S|01"
+        }
     },
     "9": {
         "title": "Shift Reduce Parsing",
