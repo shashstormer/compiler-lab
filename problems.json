@@ -134,22 +134,22 @@
     },
     "9": {
         "title": "Shift Reduce Parsing",
-        "description": "Implementation of Shift Reduce Parsing.",
+        "description": "Write a program for Shift Reduce Parsing in C. Shift Reduce Parsing is a bottom-up parsing technique that uses a stack and performs Shift, Reduce, Accept, and Reject operations.",
         "dir": "09_shift_reduce",
         "usage": {
-            "explanation": "A simulated Bottom-Up parser. It uses a stack to hold symbols. It 'Shifts' input symbols onto the stack and 'Reduces' a sequence of symbols on top of the stack to a non-terminal if they match a production RHS (Handle Pruning).",
-            "algorithm": "1. Shift input symbol to stack.\n2. Check if stack top matches any production RHS (Handle).\n3. If match, Reduce (pop RHS, push LHS).\n4. Repeat Reduce if possible.\n5. If Stack contains only Start Symbol and input is empty -> Accept.",
+            "explanation": "Shift Reduce Parsing is a bottom-up parsing technique used in compiler design. The parser uses a stack and performs:\n- Shift: Push the next input symbol onto the stack\n- Reduce: Replace a handle (production RHS) on top of the stack with the corresponding non-terminal (LHS)\n- Accept: Successfully parsed when stack contains $S and input is $\n- Reject: Parsing error when no shift or reduce is possible\n\nThe parser reads grammar productions (format: LHS->RHS, e.g., E->E+T), reads the input string, appends $, and initializes the stack with $. It then repeatedly shifts and reduces until acceptance or rejection.",
+            "algorithm": "Procedure:\n1. Read the grammar productions in format LHS->RHS.\n2. Read the input string and append $.\n3. Initialize stack with $.\n4. Repeat until input is accepted or rejected:\n   a. Check if stack top matches any production RHS (handle detection).\n   b. If match found, Reduce: pop RHS symbols, push LHS non-terminal.\n   c. If no reduction possible, Shift: push next input symbol onto stack.\n   d. Accept if stack contains $S (start symbol) and input is $.\n   e. Reject if neither shift nor reduce is possible.\n\nSample: Grammar E->E+T, E->T, T->id with input 'id+id' produces:\n$id -> Reduce T->id -> $T -> Reduce E->T -> $E -> Shift + -> $E+ -> Shift id -> $E+id -> Reduce T->id -> $E+T -> Reduce E->E+T -> $E -> Accept",
             "run": "gcc shift_reduce.c -o sr && ./sr"
         },
         "subproblems": {}
     },
     "10": {
         "title": "LR(0) Items Computation",
-        "description": "Computation of LR(0) items.",
+        "description": "Write a program for Computation of LR(0) items in C. Computes the canonical collection of LR(0) item sets including augmented grammar, closure, and goto functions.",
         "dir": "10_lr0_items",
         "usage": {
-            "explanation": "An LR(0) item is a production with a dot (.) indicating how much has been parsed (e.g., A -> a.B). Computing the collection of these item sets is the first step in building LR parsers (SLR, CLR, LALR).",
-            "algorithm": "1. Augment grammar (S' -> S).\n2. Closure(I): If A -> alpha . B beta is in item set I, add B -> .gamma for all productions of B.\n3. Goto(I, X): Move dot past symbol X for all items in I expecting X. Compute Closure of result.\n4. Repeat to find all canonical sets.",
+            "explanation": "An LR(0) item is a production with a dot (.) inserted at some position in the RHS, indicating how much has been parsed (e.g., A -> a.B). Computing the canonical collection of these item sets is the first step in building LR parsers (SLR, CLR, LALR).\n\nThree components are required:\n- Augmented Grammar: Add new start symbol S' with production S' -> S\n- Closure Function: If A -> alpha.B beta is in set I, add B -> .gamma for all productions of B\n- Goto Function: For production A -> alpha.X beta in I, goto(I,X) = closure({A -> alphaX.beta})\n\nThe program reads productions in format LHS->RHS (e.g., S->AA), augments the grammar, then computes all item sets with goto transitions.",
+            "algorithm": "Procedure:\n1. Read the grammar productions.\n2. Augment grammar: add S' -> .S\n3. Compute I0 = closure({S' -> .S}):\n   - For each item A -> alpha.B beta in I, add B -> .gamma for all B-productions\n   - Repeat until no new items can be added\n4. For each state I and each grammar symbol X:\n   - Compute goto(I, X): collect items where dot is before X, advance dot, compute closure\n   - If goto(I,X) is non-empty and not already in collection, add as new state\n5. Repeat step 4 until no new states are generated.\n6. Display all LR(0) item sets and goto transitions.\n\nSample: Grammar S->AA, A->aA, A->b produces 7 states (I0-I6) with transitions like Goto(I0,S)=I1, Goto(I0,A)=I2, etc.",
             "run": "gcc lr0.c -o lr0 && ./lr0"
         },
         "subproblems": {}
