@@ -156,26 +156,22 @@
     },
     "11": {
         "title": "Intermediate Code Generation",
-        "description": "Generate Quadruple, Triple, and Indirect Triple intermediate code.",
+        "description": "Intermediate code generation as Quadruple, Triple, Indirect triple.",
         "dir": "11_icg",
         "usage": {
-            "explanation": "Intermediate Code is a machine-independent representation (like 3-Address Code). We implement Quadruples (Op, Arg1, Arg2, Result), Triples (Op, Arg1, Arg2 - refer to index), and Indirect Triples (pointers to triples).",
-            "algorithm": "1. Parse expression (e.g., a = b + c * d).\n2. Generate temporaries (t1 = c * d, t2 = b + t1, a = t2).\n3. Store in structure arrays based on format:\n   - Quad: Explicit result variable.\n   - Triple: Result is implicit (row index).\n   - Ind. Triple: Array of pointers to Triple table.",
+            "explanation": "Intermediate code is an intermediate representation between source and target code. Common forms include Quadruples (op, arg1, arg2, result), Triples (op, arg1, arg2), and Indirect Triples (pointer to triple index).",
+            "algorithm": "Procedure:\n1. Read number of three-address statements.\n2. Read each statement and parse operator/operands.\n3. Identify operator (+, -, *, /) and split the statement into Arg1, Arg2, and Result.\n4. Store and display in Quadruple format (with Result).\n5. Store and display in Triple format (using Index as reference).\n6. Store and display in Indirect Triple format (using Pointer to Index).",
             "run": "gcc quad.c -o quad && ./quad"
         },
-        "subproblems": {
-            "1": "Quadruple",
-            "2": "Triple",
-            "3": "Indirect Triple"
-        }
+        "subproblems": {}
     },
     "12": {
         "title": "Simple Code Generator",
-        "description": "Implementation of a simple code generator.",
+        "description": "Implementation of a simple code generator for target code.",
         "dir": "12_code_gen",
         "usage": {
-            "explanation": "The final phase of compilation. Translates Intermediate Code (3AC) into Target Code (Assembly). Handles basic register allocation and instruction selection.",
-            "algorithm": "For each 3-address instruction (x = y op z):\n1. Get registers for y and z (Load if necessary).\n2. Issue machine OpCode (ADD, MUL, etc.).\n3. Update register descriptors to track which variable is where.",
+            "explanation": "Translates three-address intermediate code into target assembly-like instructions (LOAD, ADD, SUB, MUL, DIV, STORE).",
+            "algorithm": "Procedure:\n1. Read number of three-address statements.\n2. Read each statement as a string.\n3. Identify operator (+,-,*,/,=).\n4. Generate corresponding target instructions (LOAD, ADD, SUB, MUL, DIV, STORE).\n5. For simple assignments (d=u), generate LOAD u and STORE d.",
             "run": "gcc code_gen.c -o cg && ./cg"
         },
         "subproblems": {}
