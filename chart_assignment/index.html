@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Compiler Design - 6 Phases Visualization</title>
+    <meta name="description"
+        content="An interactive visualization of the six phases of a compiler using a nested if-else C program example.">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="bg-gradient"></div>
+
+    <div class="container">
+        <header>
+            <h1 id="main-title">Compiler Phases</h1>
+            <p class="subtitle">A visual deep dive into the transformation of source code through the six fundamental
+                stages of compilation.</p>
+
+            <nav class="phase-nav">
+                <a href="#lexical" class="nav-item">1. Lexical</a>
+                <a href="#syntax" class="nav-item">2. Syntax</a>
+                <a href="#semantic" class="nav-item">3. Semantic</a>
+                <a href="#icg" class="nav-item">4. ICG</a>
+                <a href="#opt" class="nav-item">5. Optimization</a>
+                <a href="#target" class="nav-item">6. Target</a>
+            </nav>
+        </header>
+
+        <section id="source" class="visible">
+            <div class="card source-code">
+                <h2><span>INPUT</span> Source Program</h2>
+                <code-block id="source-display">
+                    <span class="keyword">#include</span> <span class="string">&lt;stdio.h&gt;</span>
+                    <span class="keyword">int</span> main()
+                    {
+                    <span class="keyword">int</span> a = <span class="constant">10</span>, b = <span
+                        class="constant">20</span>;
+                    <span class="keyword">if</span>(a &gt; <span class="constant">0</span>)
+                    {
+                    <span class="keyword">if</span>(b &gt; <span class="constant">0</span>)
+                    printf(<span class="string">"Both are positive"</span>);
+                    <span class="keyword">else</span>
+                    printf(<span class="string">"a positive, b negative"</span>);
+                    }
+                    <span class="keyword">else</span>
+                    {
+                    printf(<span class="string">"a is negative"</span>);
+                    }
+                    <span class="keyword">return</span> <span class="constant">0</span>;
+                    }</code-block>
+            </div>
+        </section>
+
+        <div class="flow-indicator">
+            <div class="arrow"></div>
+        </div>
+
+        <section id="lexical">
+            <div class="card">
+                <h2><span>01</span> Lexical Analysis</h2>
+                <p>Breaks the source code into a sequence of tokens. Each lexeme is categorized into its corresponding
+                    token type.</p>
+
+                <div class="grid">
+                    <div class="table-container">
+                        <h3>Token Table</h3>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Lexeme</th>
+                                    <th>Token</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>int</td>
+                                    <td>Keyword</td>
+                                </tr>
+                                <tr>
+                                    <td>main</td>
+                                    <td>Identifier</td>
+                                </tr>
+                                <tr>
+                                    <td>(</td>
+                                    <td>Symbol</td>
+                                </tr>
+                                <tr>
+                                    <td>)</td>
+                                    <td>Symbol</td>
+                                </tr>
+                                <tr>
+                                    <td>{</td>
+                                    <td>Symbol</td>
+                                </tr>
+                                <tr>
+                                    <td>a</td>
+                                    <td>Identifier</td>
+                                </tr>
+                                <tr>
+                                    <td>=</td>
+                                    <td>Operator</td>
+                                </tr>
+                                <tr>
+                                    <td>10</td>
+                                    <td>Constant</td>
+                                </tr>
+                                <tr>
+                                    <td>,</td>
+                                    <td>Separator</td>
+                                </tr>
+                                <tr>
+                                    <td>b</td>
+                                    <td>Identifier</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div>
+                        <h3>Symbol Table</h3>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Identifier</th>
+                                    <th>Type</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>a</td>
+                                    <td>int</td>
+                                </tr>
+                                <tr>
+                                    <td>b</td>
+                                    <td>int</td>
+                                </tr>
+                                <tr>
+                                    <td>main</td>
+                                    <td>function</td>
+                                </tr>
+                                <tr>
+                                    <td>printf</td>
+                                    <td>function</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div class="flow-indicator">
+            <div class="arrow"></div>
+        </div>
+
+        <section id="syntax">
+            <div class="card">
+                <h2><span>02</span> Syntax Analysis</h2>
+                <p>Checks the grammatical structure and creates a hierarchical Parse Tree.</p>
+                <code-block id="parse-tree">
+FUNC_MAIN
+  ├── STMT_LIST
+    ├── STMT_LIST
+      ├── ASSIGN
+        ├── a
+        ├── 10
+      ├── ASSIGN
+        ├── b
+        ├── 20
+    ├── STMT_LIST
+      ├── IF_ELSE
+        ├── RELOP
+          ├── a
+          ├── 0
+        ├── BRANCHES
+          ├── IF_ELSE
+            ├── RELOP
+              ├── b
+              ├── 0
+            ├── BRANCHES
+              ├── PRINT
+                ├── "Both are positive"
+              ├── PRINT
+                ├── "a positive, b negative"
+          ├── PRINT
+            ├── "a is negative"
+      ├── RET
+        ├── 0</code-block>
+            </div>
+        </section>
+
+        <div class="flow-indicator">
+            <div class="arrow"></div>
+        </div>
+
+        <section id="semantic">
+            <div class="card">
+                <h2><span>03</span> Semantic Analysis</h2>
+                <p>Checks meaning, type consistency, and proper declarations.</p>
+                <div class="checks">
+                    <div class="check-item">✔ a declared before use</div>
+                    <div class="check-item">✔ b declared before use</div>
+                    <div class="check-item">✔ a > 0 valid comparison</div>
+                    <div class="check-item">✔ b > 0 valid comparison</div>
+                    <div class="check-item">✔ printf() valid function call</div>
+                    <div class="check-item">✔ No type mismatch</div>
+                </div>
+                <div class="success-badge">SEMANTIC ANALYSIS SUCCESSFUL</div>
+            </div>
+        </section>
+
+        <div class="flow-indicator">
+            <div class="arrow"></div>
+        </div>
+
+        <section id="icg">
+            <div class="card">
+                <h2><span>04</span> Intermediate Code Generation</h2>
+                <p>Generates language-independent Three-Address Code (TAC).</p>
+                <code-block id="tac">
+0   =   10      a
+1   =   20      b
+2   >   a   0   t1
+3   IF_GOTO t1  L1
+4   GOTO        L2
+5   LABEL       L1
+6   >   b   0   t2
+7   IF_GOTO t2  L4
+8   GOTO        L5
+9   LABEL       L4
+10  PRINT   "Both are positive"
+11  GOTO        L6
+12  LABEL       L5
+13  PRINT   "a positive, b negative"
+14  LABEL       L6
+15  GOTO        L3
+16  LABEL       L2
+17  PRINT   "a is negative"
+18  LABEL       L3
+19  RET     0</code-block>
+                <div class="table-container" style="margin-top: 2rem;">
+                    <h3>Quadruple Representation</h3>
+                    <table>
+                        <thead>
+                            <tr><th>Op</th><th>Arg1</th><th>Arg2</th><th>Result</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr><td>=</td><td>10</td><td> </td><td>a</td></tr>
+                            <tr><td>=</td><td>20</td><td> </td><td>b</td></tr>
+                            <tr><td>&gt;</td><td>a</td><td>0</td><td>t1</td></tr>
+                            <tr><td>IF_GOTO</td><td>t1</td><td> </td><td>L1</td></tr>
+                            <tr><td>GOTO</td><td> </td><td> </td><td>L4</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <div class="flow-indicator">
+            <div class="arrow"></div>
+        </div>
+
+        <section id="opt">
+            <div class="card">
+                <h2><span>05</span> Code Optimization</h2>
+                <p>Improves code efficiency by removing redundancy and reducing labels.</p>
+                <code-block id="optimized-code">
+                    a = 10
+                    b = 20
+
+                    if a <= 0 goto L4 if b <=0 goto L3 print "Both are positive" goto END L3:
+                        print "a positive, b negative" goto END L4: print "a is negative" END: return 0</code-block>
+            </div>
+        </section>
+
+        <div class="flow-indicator">
+            <div class="arrow"></div>
+        </div>
+
+        <section id="target">
+            <div class="card">
+                <h2><span>06</span> Target Code Generation</h2>
+                <p>Produces platform-specific assembly/machine code.</p>
+                <code-block id="assembly">
+MOV R1, 10
+MOV a, R1
+MOV R1, 20
+MOV b, R1
+CMP a, 0
+JG L1
+JMP L2
+L1:
+CMP b, 0
+JG L4
+JMP L5
+L4:
+PRINT "Both are positive"
+JMP L6
+L5:
+PRINT "a positive, b negative"
+L6:
+JMP L3
+L2:
+PRINT "a is negative"
+L3:
+RET 0
+HALT</code-block>
+            </div>
+        </section>
+
+        <section id="final-output">
+            <div class="card" style="text-align: center; border-color: var(--accent-secondary);">
+                <h2>Final Program Output</h2>
+                <div style="font-size: 2rem; color: var(--accent-secondary); margin: 2rem 0; font-weight: 700;">
+                    "Both are positive"
+                </div>
+                <p style="color: var(--text-muted);">
+                    Based on: a = 10 (>0) and b = 20 (>0)
+                </p>
+            </div>
+        </section>
+
+        <footer>
+            <p>&copy; 2026 Compiler Design Lab Assignment</p>
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
