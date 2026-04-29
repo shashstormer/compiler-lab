@@ -72,7 +72,9 @@ int get_const(char* name, int* val) {
     return 0;
 }
 
-/* REAL RECURSIVE GENERATOR (ICG) with Optimization */
+int opt_enabled = 0;
+
+/* REAL RECURSIVE GENERATOR (ICG) */
 char* generate_icg(Node* n) {
     if (!n) return "";
 
@@ -80,26 +82,30 @@ char* generate_icg(Node* n) {
         char* val_str = generate_icg(n->right);
         add_quad("=", val_str, " ", n->left->name);
         
-        /* Constant Propagation: Check if RHS is a constant */
-        if (isdigit(val_str[0]) || (val_str[0] == '-' && isdigit(val_str[1]))) {
-            set_const(n->left->name, atoi(val_str));
-            printf("[OPTIMIZER] Constant Propagation: %s = %d\n", n->left->name, atoi(val_str));
-        } else {
-            /* If not constant, mark as unknown */
-            for(int i=0; i<c_idx; i++) if(strcmp(constants[i].name, n->left->name) == 0) constants[i].known = 0;
+        if (opt_enabled) {
+            /* Constant Propagation: Check if RHS is a constant */
+            if (isdigit(val_str[0]) || (val_str[0] == '-' && isdigit(val_str[1]))) {
+                set_const(n->left->name, atoi(val_str));
+                printf("[OPTIMIZER] Constant Propagation: %s = %d\n", n->left->name, atoi(val_str));
+            } else {
+                /* If not constant, mark as unknown */
+                for(int i=0; i<c_idx; i++) if(strcmp(constants[i].name, n->left->name) == 0) constants[i].known = 0;
+            }
         }
         return n->left->name;
     } 
     else if (strcmp(n->name, "IF") == 0) {
         char* cond = generate_icg(n->left);
-        if (strcmp(cond, "0") == 0) {
-            printf("[OPTIMIZER] Dead Branch Elimination: if(0) detected. Skipping.\n");
-            return "";
-        }
-        if (strcmp(cond, "1") == 0) {
-            printf("[OPTIMIZER] Conditional Folding: if(1) detected. Inlining branch.\n");
-            generate_icg(n->right);
-            return "";
+        if (opt_enabled) {
+            if (strcmp(cond, "0") == 0) {
+                printf("[OPTIMIZER] Dead Branch Elimination: if(0) detected. Skipping.\n");
+                return "";
+            }
+            if (strcmp(cond, "1") == 0) {
+                printf("[OPTIMIZER] Conditional Folding: if(1) detected. Inlining branch.\n");
+                generate_icg(n->right);
+                return "";
+            }
         }
         
         char* l1 = new_label();
@@ -113,15 +119,17 @@ char* generate_icg(Node* n) {
     else if (strcmp(n->name, "IF_ELSE") == 0) {
         char* cond = generate_icg(n->left);
         
-        if (strcmp(cond, "1") == 0) {
-            printf("[OPTIMIZER] Conditional Folding: Condition is TRUE. Keeping only true branch.\n");
-            generate_icg(n->right->left);
-            return "";
-        }
-        if (strcmp(cond, "0") == 0) {
-            printf("[OPTIMIZER] Conditional Folding: Condition is FALSE. Keeping only else branch.\n");
-            generate_icg(n->right->right);
-            return "";
+        if (opt_enabled) {
+            if (strcmp(cond, "1") == 0) {
+                printf("[OPTIMIZER] Conditional Folding: Condition is TRUE. Keeping only true branch.\n");
+                generate_icg(n->right->left);
+                return "";
+            }
+            if (strcmp(cond, "0") == 0) {
+                printf("[OPTIMIZER] Conditional Folding: Condition is FALSE. Keeping only else branch.\n");
+                generate_icg(n->right->right);
+                return "";
+            }
         }
 
         char* l_true = new_label();
@@ -140,24 +148,22 @@ char* generate_icg(Node* n) {
         add_quad("LABEL", " ", " ", l_end);
     }
     else if (strcmp(n->name, "RELOP") == 0) {
-        int v1, v2;
-        int k1 = get_const(n->left->name, &v1);
-        int k2 = 0;
-        if (isdigit(n->right->name[0]) || (n->right->name[0] == '-' && isdigit(n->right->name[1]))) {
-            v2 = atoi(n->right->name);
-            k2 = 1;
-        } else {
-            k2 = get_const(n->right->name, &v2);
-        }
-
-        if (k1 && k2) {
-            /* Constant Folding for Relational Ops */
-            int res = 0;
-            if (strcmp(n->name, "RELOP") == 0) {
-                 res = (v1 > v2); /* Simple support for > for now */
+        if (opt_enabled) {
+            int v1, v2;
+            int k1 = get_const(n->left->name, &v1);
+            int k2 = 0;
+            if (isdigit(n->right->name[0]) || (n->right->name[0] == '-' && isdigit(n->right->name[1]))) {
+                v2 = atoi(n->right->name);
+                k2 = 1;
+            } else {
+                k2 = get_const(n->right->name, &v2);
             }
-            printf("[OPTIMIZER] Constant Folding: %d > %d evaluated to %d\n", v1, v2, res);
-            return res ? "1" : "0";
+
+            if (k1 && k2) {
+                int res = (v1 > v2);
+                printf("[OPTIMIZER] Constant Folding: %d > %d evaluated to %d\n", v1, v2, res);
+                return res ? "1" : "0";
+            }
         }
 
         char* t = new_temp();
@@ -250,6 +256,7 @@ void dead_code_elimination() {
 
 int main(int argc, char** argv) {
     int dce_flag = (argc > 1 && strcmp(argv[1], "dead") == 0);
+    opt_enabled = dce_flag;
     
     yyin = fopen("main.c", "r");
     if (!yyin) return 1;
