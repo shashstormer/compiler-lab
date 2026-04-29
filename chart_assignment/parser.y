@@ -40,6 +40,9 @@ Node* root;
 %token <sval> ID STRING
 %token INT MAIN IF ELSE RETURN PRINTF RELOP ASSIGN COMMA SEMI LPAREN RPAREN LBRACE RBRACE
 
+%nonassoc LOWER_THAN_ELSE
+%nonassoc ELSE
+
 %type <nval> program function declaration statement if_stmt block call stmt_list expr
 
 %%
@@ -68,11 +71,11 @@ declaration: INT ID ASSIGN expr { $$ = createNode("ASSIGN", createNode($2, NULL,
            | declaration COMMA ID ASSIGN expr { $$ = createNode("STMT_LIST", $1, createNode("ASSIGN", createNode($3, NULL, NULL), $5)); }
            ;
 
-if_stmt: IF LPAREN expr RELOP expr RPAREN block { 
+if_stmt: IF LPAREN expr RELOP expr RPAREN block %prec LOWER_THAN_ELSE { 
            Node* cond = createNode("RELOP", $3, $5);
            $$ = createNode("IF", cond, $7); 
        }
-       | IF LPAREN expr RPAREN block {
+       | IF LPAREN expr RPAREN block %prec LOWER_THAN_ELSE {
            $$ = createNode("IF", $3, $5);
        }
        | IF LPAREN expr RELOP expr RPAREN block ELSE block { 
@@ -90,7 +93,7 @@ call: PRINTF LPAREN STRING RPAREN { $$ = createNode("PRINT", createNode($3, NULL
     ;
 
 expr: ID { $$ = createNode($1, NULL, NULL); }
-    | CONST { char buf[10]; sprintf(buf, "%d", $1); $$ = createNode(buf, NULL, NULL); }
+    | CONST { char buf[20]; sprintf(buf, "%d", $1); $$ = createNode(buf, NULL, NULL); }
     ;
 
 %%

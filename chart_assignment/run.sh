@@ -6,39 +6,40 @@ function show_help {
     echo ""
     echo "Options:"
     echo "  code          Compile and execute the source program (main.c)"
-    echo "  compile       Compile and run the real Flex/Bison compiler"
-    echo "  compile dead  Compile and run with Dead Code Elimination"
+    echo "  compile       Compile and run the compiler"
+    echo "  compile dead  Compile and run with optimizations"
+    echo "  clean         Delete generated files"
     echo "  help          Show this help message"
 }
 
 case "$1" in
     code)
-        echo "Compiling main.c..."
-        gcc main.c -o main
+        gcc main.c -o program
         if [ $? -eq 0 ]; then
-            echo "Compilation successful. Executing program..."
-            ./main
+            ./program
         else
             echo "Compilation failed."
         fi
         ;;
     compile)
-        echo "Compiling Lexer and Parser..."
         bison -d parser.y
         flex lexer.l
-        gcc lex.yy.c parser.tab.c compiler.c -o real_compiler
+        gcc lex.yy.c parser.tab.c compiler.c -o compiler
         
         if [ $? -eq 0 ]; then
             if [ "$2" == "dead" ]; then
-                echo "Running Real Compiler with Dead Code Elimination..."
-                ./real_compiler dead
+                ./compiler dead
             else
-                echo "Running Real Compiler..."
-                ./real_compiler
+                ./compiler
             fi
         else
             echo "Compilation failed."
         fi
+        ;;
+    clean)
+        echo "Cleaning up generated files..."
+        rm -f compiler program lex.yy.c parser.tab.c parser.tab.h main real_compiler
+        echo "Done."
         ;;
     help|*)
         show_help

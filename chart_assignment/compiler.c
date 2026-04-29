@@ -9,7 +9,6 @@ extern FILE* yyin;
 extern int yyparse();
 extern Node* root;
 
-/* Quadruple Structure */
 struct quadruple {
     char op[100];
     char arg1[100];
@@ -26,7 +25,6 @@ void add_quad(char* op, char* a1, char* a2, char* res) {
     q_idx++;
 }
 
-/* Generators for names */
 int t_cnt = 1;
 int l_cnt = 1;
 char* new_temp() {
@@ -40,7 +38,6 @@ char* new_label() {
     return s;
 }
 
-/* Constant Propagation Table */
 struct {
     char name[20];
     int value;
@@ -74,7 +71,6 @@ int get_const(char* name, int* val) {
 
 int opt_enabled = 0;
 
-/* REAL RECURSIVE GENERATOR (ICG) */
 char* generate_icg(Node* n) {
     if (!n) return "";
 
@@ -83,12 +79,10 @@ char* generate_icg(Node* n) {
         add_quad("=", val_str, " ", n->left->name);
         
         if (opt_enabled) {
-            /* Constant Propagation: Check if RHS is a constant */
             if (isdigit(val_str[0]) || (val_str[0] == '-' && isdigit(val_str[1]))) {
                 set_const(n->left->name, atoi(val_str));
                 printf("[OPTIMIZER] Constant Propagation: %s = %d\n", n->left->name, atoi(val_str));
             } else {
-                /* If not constant, mark as unknown */
                 for(int i=0; i<c_idx; i++) if(strcmp(constants[i].name, n->left->name) == 0) constants[i].known = 0;
             }
         }
@@ -182,15 +176,13 @@ char* generate_icg(Node* n) {
         generate_icg(n->right);
     }
     else {
-        /* Base case: Constant or ID */
         return n->name;
     }
     return "";
 }
 
-/* Phase 4: ICG Output */
 void print_icg() {
-    printf("========================================\n");
+    printf("\n========================================\n");
     printf("4. INTERMEDIATE CODE GENERATION\n");
     printf("========================================\n");
     printf("Index\tOp\tArg1\tArg2\tResult\n");
@@ -200,7 +192,6 @@ void print_icg() {
     }
 }
 
-/* Phase 6: Target Code Logic (Dynamic based on Quads) */
 void generate_target() {
     printf("\n========================================\n");
     printf("6. TARGET CODE GENERATION\n");
@@ -225,12 +216,9 @@ void generate_target() {
     printf("HALT\n");
 }
 
-/* Phase 5: Dead Code Elimination (Template Pattern) */
 void dead_code_elimination() {
-    printf("\n--- OPTIMIZATION: DEAD CODE ELIMINATION ---\n");
     int active_labels[200] = {0};
     
-    /* Mark labels that are targets of jumps */
     for(int i=0; i<q_idx; i++) {
         if (strcmp(quads[i].op, "IF_GOTO") == 0 || strcmp(quads[i].op, "GOTO") == 0) {
             int l_num = atoi(quads[i].result + 1);
@@ -238,7 +226,6 @@ void dead_code_elimination() {
         }
     }
     
-    /* Simple Elimination: Remove labels that are never jumped to */
     int new_q_idx = 0;
     for(int i=0; i<q_idx; i++) {
         if (strcmp(quads[i].op, "LABEL") == 0) {
@@ -251,7 +238,7 @@ void dead_code_elimination() {
         quads[new_q_idx++] = quads[i];
     }
     q_idx = new_q_idx;
-    printf("✔ Dead code elimination complete.\n");
+    printf("Dead code elimination complete.\n");
 }
 
 int main(int argc, char** argv) {
@@ -262,7 +249,7 @@ int main(int argc, char** argv) {
     if (!yyin) return 1;
 
     if (yyparse() == 0) {
-        printf("\n--- COMPILER PHASES (DCE: %s) ---\n", dce_flag ? "ENABLED" : "DISABLED");
+        printf("\nPHASES (DCE: %s)\n", dce_flag ? "ENABLED" : "DISABLED");
         
         generate_icg(root);
         

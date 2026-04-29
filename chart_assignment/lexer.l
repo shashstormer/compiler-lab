@@ -1,6 +1,7 @@
 %{
 #include <stdio.h>
 #include <string.h>
+#include "node.h"
 #include "parser.tab.h"
 
 void print_token(const char* lexeme, const char* token) {
@@ -11,8 +12,7 @@ void print_token(const char* lexeme, const char* token) {
 %option noyywrap
 
 %%
-
-"#include"[ ]*<[^>]+>    { print_token(yytext, "Directive"); }
+"#include"[ ]*"<"[^>]*">" { print_token(yytext, "Directive"); }
 "int"                    { print_token(yytext, "Keyword"); return INT; }
 "main"                   { print_token(yytext, "Identifier"); return MAIN; }
 "if"                     { print_token(yytext, "Keyword"); return IF; }
@@ -30,7 +30,6 @@ void print_token(const char* lexeme, const char* token) {
 ")"                      { print_token(yytext, "Symbol"); return RPAREN; }
 "{"                      { print_token(yytext, "Symbol"); return LBRACE; }
 "}"                      { print_token(yytext, "Symbol"); return RBRACE; }
-[ \t\n]                  { /* ignore whitespace */ }
-.                        { printf("Unknown character: %s\n", yytext); }
-
+[ \t\n\r]+               { /* skip whitespace */ }
+.                        { print_token(yytext, "Unknown"); }
 %%
