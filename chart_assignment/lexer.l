@@ -20,7 +20,7 @@ void print_token(const char* lexeme, const char* token) {
 "return"                 { print_token(yytext, "Keyword"); return RETURN; }
 "printf"                 { print_token(yytext, "Identifier"); return PRINTF; }
 [a-zA-Z_][a-zA-Z0-9_]*   { print_token(yytext, "Identifier"); yylval.sval = strdup(yytext); return ID; }
-[0-9]+                   { print_token(yytext, "Constant"); yylval.ival = atoi(yytext); return CONST; }
+-?[0-9]+                 { print_token(yytext, "Constant"); yylval.ival = atoi(yytext); return CONST; }
 \"[^\"]*\"               { print_token(yytext, "String Literal"); yylval.sval = strdup(yytext); return STRING; }
 "=="|"!="|">="|"<="|">"|"<" { print_token(yytext, "Relational Operator"); return RELOP; }
 "="                      { print_token(yytext, "Operator"); return ASSIGN; }
