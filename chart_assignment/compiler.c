@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 #include "node.h"
 #include "parser.tab.h"
 
@@ -10,10 +11,10 @@ extern Node* root;
 
 /* Quadruple Structure */
 struct quadruple {
-    char op[20];
-    char arg1[20];
-    char arg2[20];
-    char result[20];
+    char op[100];
+    char arg1[100];
+    char arg2[100];
+    char result[100];
 } quads[200];
 int q_idx = 0;
 
@@ -39,17 +40,68 @@ char* new_label() {
     return s;
 }
 
-/* REAL RECURSIVE GENERATOR (ICG) */
+/* Constant Propagation Table */
+struct {
+    char name[20];
+    int value;
+    int known;
+} constants[100];
+int c_idx = 0;
+
+void set_const(char* name, int val) {
+    for(int i=0; i<c_idx; i++) {
+        if(strcmp(constants[i].name, name) == 0) {
+            constants[i].value = val;
+            constants[i].known = 1;
+            return;
+        }
+    }
+    strcpy(constants[c_idx].name, name);
+    constants[c_idx].value = val;
+    constants[c_idx].known = 1;
+    c_idx++;
+}
+
+int get_const(char* name, int* val) {
+    for(int i=0; i<c_idx; i++) {
+        if(strcmp(constants[i].name, name) == 0 && constants[i].known) {
+            *val = constants[i].value;
+            return 1;
+        }
+    }
+    return 0;
+}
+
+/* REAL RECURSIVE GENERATOR (ICG) with Optimization */
 char* generate_icg(Node* n) {
     if (!n) return "";
 
     if (strcmp(n->name, "ASSIGN") == 0) {
-        char* val = generate_icg(n->right);
-        add_quad("=", val, " ", n->left->name);
+        char* val_str = generate_icg(n->right);
+        add_quad("=", val_str, " ", n->left->name);
+        
+        /* Constant Propagation: Check if RHS is a constant */
+        if (isdigit(val_str[0]) || (val_str[0] == '-' && isdigit(val_str[1]))) {
+            set_const(n->left->name, atoi(val_str));
+            printf("[OPTIMIZER] Constant Propagation: %s = %d\n", n->left->name, atoi(val_str));
+        } else {
+            /* If not constant, mark as unknown */
+            for(int i=0; i<c_idx; i++) if(strcmp(constants[i].name, n->left->name) == 0) constants[i].known = 0;
+        }
         return n->left->name;
     } 
     else if (strcmp(n->name, "IF") == 0) {
         char* cond = generate_icg(n->left);
+        if (strcmp(cond, "0") == 0) {
+            printf("[OPTIMIZER] Dead Branch Elimination: if(0) detected. Skipping.\n");
+            return "";
+        }
+        if (strcmp(cond, "1") == 0) {
+            printf("[OPTIMIZER] Conditional Folding: if(1) detected. Inlining branch.\n");
+            generate_icg(n->right);
+            return "";
+        }
+        
         char* l1 = new_label();
         char* l2 = new_label();
         add_quad("IF_GOTO", cond, " ", l1);
@@ -60,6 +112,18 @@ char* generate_icg(Node* n) {
     }
     else if (strcmp(n->name, "IF_ELSE") == 0) {
         char* cond = generate_icg(n->left);
+        
+        if (strcmp(cond, "1") == 0) {
+            printf("[OPTIMIZER] Conditional Folding: Condition is TRUE. Keeping only true branch.\n");
+            generate_icg(n->right->left);
+            return "";
+        }
+        if (strcmp(cond, "0") == 0) {
+            printf("[OPTIMIZER] Conditional Folding: Condition is FALSE. Keeping only else branch.\n");
+            generate_icg(n->right->right);
+            return "";
+        }
+
         char* l_true = new_label();
         char* l_false = new_label();
         char* l_end = new_label();
@@ -68,14 +132,34 @@ char* generate_icg(Node* n) {
         add_quad("GOTO", " ", " ", l_false);
         
         add_quad("LABEL", " ", " ", l_true);
-        generate_icg(n->right->left); // True branch
+        generate_icg(n->right->left);
         add_quad("GOTO", " ", " ", l_end);
         
         add_quad("LABEL", " ", " ", l_false);
-        generate_icg(n->right->right); // False branch
+        generate_icg(n->right->right);
         add_quad("LABEL", " ", " ", l_end);
     }
     else if (strcmp(n->name, "RELOP") == 0) {
+        int v1, v2;
+        int k1 = get_const(n->left->name, &v1);
+        int k2 = 0;
+        if (isdigit(n->right->name[0]) || (n->right->name[0] == '-' && isdigit(n->right->name[1]))) {
+            v2 = atoi(n->right->name);
+            k2 = 1;
+        } else {
+            k2 = get_const(n->right->name, &v2);
+        }
+
+        if (k1 && k2) {
+            /* Constant Folding for Relational Ops */
+            int res = 0;
+            if (strcmp(n->name, "RELOP") == 0) {
+                 res = (v1 > v2); /* Simple support for > for now */
+            }
+            printf("[OPTIMIZER] Constant Folding: %d > %d evaluated to %d\n", v1, v2, res);
+            return res ? "1" : "0";
+        }
+
         char* t = new_temp();
         add_quad(">", n->left->name, n->right->name, t);
         return t;
@@ -135,17 +219,49 @@ void generate_target() {
     printf("HALT\n");
 }
 
-int main() {
+/* Phase 5: Dead Code Elimination (Template Pattern) */
+void dead_code_elimination() {
+    printf("\n--- OPTIMIZATION: DEAD CODE ELIMINATION ---\n");
+    int active_labels[200] = {0};
+    
+    /* Mark labels that are targets of jumps */
+    for(int i=0; i<q_idx; i++) {
+        if (strcmp(quads[i].op, "IF_GOTO") == 0 || strcmp(quads[i].op, "GOTO") == 0) {
+            int l_num = atoi(quads[i].result + 1);
+            if (l_num > 0) active_labels[l_num] = 1;
+        }
+    }
+    
+    /* Simple Elimination: Remove labels that are never jumped to */
+    int new_q_idx = 0;
+    for(int i=0; i<q_idx; i++) {
+        if (strcmp(quads[i].op, "LABEL") == 0) {
+            int l_num = atoi(quads[i].result + 1);
+            if (l_num > 0 && active_labels[l_num] == 0) {
+                printf("[DCE] Removing unreachable label: %s\n", quads[i].result);
+                continue;
+            }
+        }
+        quads[new_q_idx++] = quads[i];
+    }
+    q_idx = new_q_idx;
+    printf("✔ Dead code elimination complete.\n");
+}
+
+int main(int argc, char** argv) {
+    int dce_flag = (argc > 1 && strcmp(argv[1], "dead") == 0);
+    
     yyin = fopen("main.c", "r");
     if (!yyin) return 1;
 
-    printf("--- RUNNING REAL COMPILER FRONTEND ---\n");
     if (yyparse() == 0) {
-        printf("\n--- PARSE TREE ---\n");
-        printTree(root, 0);
-
-        /* Real ICG Extraction */
+        printf("\n--- COMPILER PHASES (DCE: %s) ---\n", dce_flag ? "ENABLED" : "DISABLED");
+        
         generate_icg(root);
+        
+        if (dce_flag) {
+            dead_code_elimination();
+        }
 
         print_icg();
         generate_target();

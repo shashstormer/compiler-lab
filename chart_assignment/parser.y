@@ -72,10 +72,17 @@ if_stmt: IF LPAREN expr RELOP expr RPAREN block {
            Node* cond = createNode("RELOP", $3, $5);
            $$ = createNode("IF", cond, $7); 
        }
+       | IF LPAREN expr RPAREN block {
+           $$ = createNode("IF", $3, $5);
+       }
        | IF LPAREN expr RELOP expr RPAREN block ELSE block { 
            Node* cond = createNode("RELOP", $3, $5);
            Node* branches = createNode("BRANCHES", $7, $9);
            $$ = createNode("IF_ELSE", cond, branches); 
+       }
+       | IF LPAREN expr RPAREN block ELSE block {
+           Node* branches = createNode("BRANCHES", $5, $7);
+           $$ = createNode("IF_ELSE", $3, branches);
        }
        ;
 
