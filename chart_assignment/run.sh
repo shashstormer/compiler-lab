@@ -1,5 +1,5 @@
 #!/bin/bash
-cd "/home/shash/Desktop/srm/compiler_design/chart_assignment"
+cd "$(dirname "$0")"
 
 MODE=""
 OPTIMIZE=false
