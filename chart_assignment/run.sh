@@ -40,14 +40,16 @@ if [ -z "$MODE" ] || [ "$MODE" == "help" ]; then
 fi
 
 if [ "$MODE" == "manual_clean" ]; then
-    echo "Cleaning up..."
+    echo "> rm -f compiler program lex.yy.c parser.tab.c parser.tab.h main real_compiler compiler_sim"
     do_clean
     exit 0
 fi
 
 if [ "$MODE" == "code" ]; then
+    echo "> gcc main.c -o program"
     gcc main.c -o program
     if [ $? -eq 0 ]; then
+        echo "> ./program"
         ./program
     else
         echo "Compilation failed."
@@ -55,14 +57,19 @@ if [ "$MODE" == "code" ]; then
 fi
 
 if [ "$MODE" == "compile" ]; then
+    echo "> bison -d parser.y"
     bison -d parser.y
+    echo "> flex lexer.l"
     flex lexer.l
+    echo "> gcc lex.yy.c parser.tab.c compiler.c -o compiler"
     gcc lex.yy.c parser.tab.c compiler.c -o compiler
     
     if [ $? -eq 0 ]; then
         if [ "$OPTIMIZE" = true ]; then
+            echo "> ./compiler dead"
             ./compiler dead
         else
+            echo "> ./compiler"
             ./compiler
         fi
     else
